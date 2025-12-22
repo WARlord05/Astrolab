@@ -1,15 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
-
+import React, { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import UserForm from "@/components/UserForm";
+import HoroscopeDisplay from "@/components/HoroscopeDisplay";
+import { UserData, Horoscope } from "@/lib/astrology";
+import { getHoroscopes } from "@/lib/mockHoroscope";
 
 const Index = () => {
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [horoscopes, setHoroscopes] = useState<{ today: Horoscope; tomorrow: Horoscope } | null>(null);
+
+  const handleFormSubmit = (data: UserData) => {
+    setUserData(data);
+    
+    // In a real application, this is where you would call an API to get the horoscope
+    const results = getHoroscopes(data.zodiacSign);
+    setHoroscopes(results);
+  };
+
+  const handleReset = () => {
+    setUserData(null);
+    setHoroscopes(null);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">
-          Start building your amazing project here!
-        </p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <div className="flex-grow flex items-center justify-center w-full py-10">
+        {userData && horoscopes ? (
+          <HoroscopeDisplay 
+            userData={userData} 
+            horoscopes={horoscopes} 
+            onReset={handleReset} 
+          />
+        ) : (
+          <UserForm onSubmitData={handleFormSubmit} />
+        )}
       </div>
       <MadeWithDyad />
     </div>
