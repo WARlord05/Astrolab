@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { ZODIAC_SIGNS, UserData } from "@/lib/astrology";
 import { toast } from "sonner";
 import { Haptics } from "@capacitor/haptics";
+import ZodiacInfoPopover from "./ZodiacInfoPopover"; // Import the new component
 
 // 1. Define Schema
 const formSchema = z.object({
@@ -53,7 +54,8 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
     },
   });
 
-  const { trigger, getValues } = form;
+  const { trigger, getValues, watch } = form;
+  const watchedZodiacSign = watch("zodiacSign");
 
   const handleNext = async () => {
     let isValid = false;
@@ -185,7 +187,10 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
         name="zodiacSign"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Zodiac Sign</FormLabel>
+            <div className="flex items-center">
+              <FormLabel>Zodiac Sign</FormLabel>
+              <ZodiacInfoPopover sign={watchedZodiacSign} />
+            </div>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
