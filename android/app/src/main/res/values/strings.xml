@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Astrolab</string>
+    <string name="title_activity_main">Astrolab</string>
+    <string name="package_name">com.example.astrolab</string>
+    <string name="custom_url_scheme">com.example.astrolab</string>
+</resources>

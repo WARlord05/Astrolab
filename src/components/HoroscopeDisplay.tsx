@@ -6,6 +6,7 @@ import { Star, Calendar, Zap, Palette, User, Clock, Heart, Ruler, Weight } from 
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface HoroscopeCardProps {
     horoscope: Horoscope;
