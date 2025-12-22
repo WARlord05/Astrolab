@@ -4,6 +4,7 @@ import UserForm from "@/components/UserForm";
 import HoroscopeDisplay from "@/components/HoroscopeDisplay";
 import { UserData, Horoscope } from "@/lib/astrology";
 import { getHoroscopes } from "@/lib/mockHoroscope";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -24,6 +25,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="flex-grow flex items-center justify-center w-full py-10">
         {userData && horoscopes ? (
           <HoroscopeDisplay 
