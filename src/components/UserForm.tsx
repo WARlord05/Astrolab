@@ -15,6 +15,7 @@ import { CalendarIcon, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ZODIAC_SIGNS, UserData } from "@/lib/astrology";
 import { toast } from "sonner";
+import { Haptics } from "@capacitor/haptics";
 
 // 1. Define Schema
 const formSchema = z.object({
@@ -75,6 +76,9 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
   };
 
   const handleSubmit = (data: FormData) => {
+    // Use Haptics for success feedback on mobile devices
+    Haptics.vibrate({ duration: 50 });
+    
     onSubmitData(data as UserData);
   };
 
