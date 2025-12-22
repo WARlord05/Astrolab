@@ -17,7 +17,7 @@ const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ horoscope }) => (
                 {horoscope.date}
             </CardTitle>
             <CardDescription className="text-lg font-semibold text-primary">
-                {horoscope.date === new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) ? "Today's Reading" : "Tomorrow's Forecast"}
+                {horoscope.date === new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) ? "Today's Forecast" : "Tomorrow's Forecast"}
             </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 flex-grow">
