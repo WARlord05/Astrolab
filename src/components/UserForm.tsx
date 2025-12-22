@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, ArrowRight, ArrowLeft } from "lucide-react";
+import { CalendarIcon, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ZODIAC_SIGNS, UserData } from "@/lib/astrology";
 import { toast } from "sonner";
@@ -227,22 +228,30 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
   const Step3 = () => {
     const data = getValues();
     return (
-      <div className="space-y-4 p-2 border rounded-md bg-muted/50">
-        <h3 className="text-lg font-semibold">Review Your Information</h3>
-        <div className="grid grid-cols-2 gap-y-2">
-            <p className="font-medium">Weight:</p><p>{data.weight} kg</p>
-            <p className="font-medium">Height:</p><p>{data.height} cm</p>
-            <p className="font-medium">Birth Date:</p><p>{data.birthDate ? format(data.birthDate, "PPP") : 'N/A'}</p>
-            <p className="font-medium">Birth Time:</p><p>{data.birthTime}</p>
-            <p className="font-medium">Zodiac Sign:</p><p>{data.zodiacSign}</p>
-            <p className="font-medium">Current Mood:</p><p>{data.mood}</p>
+      <div className="space-y-6 p-4 border rounded-lg bg-muted/50">
+        <h3 className="text-xl font-bold text-center text-primary">Review & Confirm</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ReviewItem label="Weight" value={`${data.weight} kg`} />
+            <ReviewItem label="Height" value={`${data.height} cm`} />
+            <ReviewItem label="Birth Date" value={data.birthDate ? format(data.birthDate, "PPP") : 'N/A'} />
+            <ReviewItem label="Birth Time" value={data.birthTime} />
+            <ReviewItem label="Zodiac Sign" value={data.zodiacSign} />
+            <ReviewItem label="Current Mood" value={data.mood} />
         </div>
-        <p className="text-sm text-muted-foreground pt-2 text-center">
-          Click "Get Horoscope" to proceed.
+        <p className="text-sm text-muted-foreground pt-2 text-center flex items-center justify-center">
+          <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
+          All information looks correct. Click "Get Horoscope" below.
         </p>
       </div>
     );
   };
+
+  const ReviewItem: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+    <div className="flex justify-between items-center p-2 bg-background rounded-md border">
+      <span className="text-sm font-medium text-muted-foreground">{label}:</span>
+      <span className="text-sm font-semibold text-foreground">{value}</span>
+    </div>
+  );
 
   const renderStep = () => {
     switch (step) {
@@ -262,14 +271,17 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
     "2. Astrological Details",
     "3. Confirmation",
   ];
+  
+  const progressValue = (step / 3) * 100;
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Astrolab</CardTitle>
-        <CardDescription className="text-center">
-          {stepTitles[step - 1]} ({step}/3)
+    <Card className="w-full max-w-lg mx-auto shadow-2xl border-t-4 border-primary">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-3xl font-extrabold text-center text-primary">Astrolab</CardTitle>
+        <CardDescription className="text-center text-lg">
+          {stepTitles[step - 1]}
         </CardDescription>
+        <Progress value={progressValue} className="w-full mt-4 h-2" />
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -287,7 +299,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
                   Next <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700">
                   Get Horoscope
                 </Button>
               )}
