@@ -43,6 +43,26 @@ export interface ApiHoroscope {
 }
 
 /**
+ * Fetch with AbortController timeout
+ * @param url - The URL to fetch
+ * @param timeoutMs - Timeout in milliseconds
+ * @returns Promise with the response
+ */
+const fetchWithTimeout = async (url: string, timeoutMs: number = 8000): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
+
+/**
  * Attempts to fetch from the API with fallback to secondary endpoints
  * @param endpoint - The endpoint to fetch from
  * @returns Promise with the response
@@ -54,17 +74,21 @@ const fetchWithFallback = async (endpoint: string): Promise<Response> => {
   for (let i = 0; i < API_URLS.length; i++) {
     try {
       const url = `${API_URLS[i]}${endpoint}`;
-      console.log(`🔍 Fetching from (attempt ${i + 1}):`, url);
+      console.log(`🔍 Fetching from (attempt ${i + 1}/${API_URLS.length}):`, url);
 
-      const response = await fetch(url, { timeout: 5000 });
+      const response = await fetchWithTimeout(url, 8000);
 
       if (response.ok) {
         console.log(`✅ Success from endpoint ${i + 1}`);
         return response;
+      } else if (response.status === 404 || response.status === 500 || response.status === 502 || response.status === 503) {
+        console.warn(`⚠️ Endpoint ${i + 1} returned ${response.status}, trying next...`);
+        lastError = new Error(`HTTP error! status: ${response.status}`);
+        continue;
       }
     } catch (error) {
       lastError = error as Error;
-      console.warn(`⚠️ Endpoint ${i + 1} failed:`, error);
+      console.warn(`⚠️ Endpoint ${i + 1} failed:`, error instanceof Error ? error.message : error);
       continue;
     }
   }
@@ -164,13 +188,13 @@ export const fetchMonthlyHoroscope = async (sign: string): Promise<HoroscopeData
 export const testApiConnection = async (): Promise<boolean> => {
   for (let i = 0; i < API_URLS.length; i++) {
     try {
-      const response = await fetch(API_URLS[i], { timeout: 5000 });
+      const response = await fetchWithTimeout(API_URLS[i], 5000);
       if (response.ok || response.status === 404) {
         console.log(`✅ API endpoint ${i + 1} is reachable`);
         return true;
       }
     } catch (error) {
-      console.warn(`⚠️ API endpoint ${i + 1} not reachable:`, error);
+      console.warn(`⚠️ API endpoint ${i + 1} not reachable:`, error instanceof Error ? error.message : error);
       continue;
     }
   }

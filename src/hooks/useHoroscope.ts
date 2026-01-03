@@ -30,6 +30,8 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
     },
     enabled: !!zodiacSign,
     staleTime: 1000 * 60 * 60, // 1 hour
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const { data: tomorrowData, isLoading: tomorrowLoading, error: tomorrowError } = useQuery({
@@ -40,6 +42,8 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
     },
     enabled: !!zodiacSign,
     staleTime: 1000 * 60 * 60, // 1 hour
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const isLoading = todayLoading || tomorrowLoading;
@@ -47,7 +51,7 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
   const error = (todayError || tomorrowError) as Error | null;
 
   if (isLoading) console.log('⏳ Loading horoscope data...');
-  if (isError) console.error('❌ Error loading horoscope:', error);
+  if (isError) console.error('❌ Error loading horoscope:', error?.message || error);
 
   const horoscopes = todayData && tomorrowData ? {
     today: {
