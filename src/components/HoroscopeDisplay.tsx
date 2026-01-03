@@ -1,11 +1,9 @@
-import React from 'react';
-import { Horoscope, UserData } from '@/lib/astrology';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Horoscope, UserData, ZODIAC_SIGN_DETAILS } from '@/lib/astrology';
 import { Separator } from '@/components/ui/separator';
-import { Star, Calendar, Zap, Palette, User, Clock, Heart, Ruler, Weight, Smile, Frown, AlertTriangle } from 'lucide-react';
+import { Star, Calendar, Zap, Palette, User, Clock, Heart, TrendingUp, X, Droplet, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface HoroscopeCardProps {
@@ -13,60 +11,82 @@ interface HoroscopeCardProps {
 }
 
 const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ horoscope }) => {
+    const [showMeaning, setShowMeaning] = useState(false);
     const todayFormatted = format(new Date(), 'PPP');
     const isToday = horoscope.date === todayFormatted;
 
     return (
-        <Card className="flex flex-col h-full shadow-xl border-t-4 border-yellow-500 dark:border-yellow-400 bg-card/80 backdrop-blur-sm">
-            <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
-                    <CardTitle className="text-2xl font-bold text-primary flex items-center gap-2">
-                        <Calendar className="w-6 h-6 text-yellow-500" />
-                        {isToday ? "Today" : "Tomorrow"}
-                    </CardTitle>
-                    <Badge variant={isToday ? "default" : "secondary"} className="text-sm px-3 py-1">
-                        {isToday ? "Current Forecast" : "Upcoming"}
-                    </Badge>
+        <>
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20 space-y-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h3 className="text-white text-xl font-bold flex items-center gap-2 mb-1">
+                            <Sparkles className="w-5 h-5 text-yellow-400" />
+                            {isToday ? "Daily Forecast" : "Tomorrow's Forecast"}
+                        </h3>
+                        <p className="text-purple-200 text-sm">{horoscope.date}</p>
+                    </div>
                 </div>
-                <CardDescription className="text-sm text-muted-foreground">{horoscope.date}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 flex-grow">
-                <div className="p-4 bg-accent/30 rounded-lg border border-accent">
-                    <p className="text-lg italic font-medium text-foreground">
+
+                <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                    <p className="text-purple-100 leading-relaxed italic">
                         "{horoscope.prediction}"
                     </p>
                 </div>
-                
-                <Separator />
+
+                <Separator className="bg-white/10" />
 
                 <div className="grid grid-cols-2 gap-4">
-                    <FeatureItem 
-                        icon={Zap} 
-                        label="Lucky Number" 
-                        value={horoscope.luckyNumber.toString()} 
-                        color="text-red-500"
-                    />
-                    <FeatureItem 
-                        icon={Palette} 
-                        label="Lucky Color" 
-                        value={horoscope.color} 
-                        color="text-blue-500"
-                    />
+                    <div 
+                        onClick={() => setShowMeaning(true)} 
+                        className="cursor-pointer hover:opacity-80 transition-opacity p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10"
+                    >
+                        <div className="flex items-center gap-2 mb-2">
+                            <Zap className="w-4 h-4 text-red-400" />
+                            <span className="text-xs font-medium text-white/70">Lucky Number</span>
+                        </div>
+                        <span className="text-2xl font-extrabold text-white">{horoscope.luckyNumber}</span>
+                    </div>
+
+                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Palette className="w-4 h-4 text-blue-400" />
+                            <span className="text-xs font-medium text-white/70">Lucky Color</span>
+                        </div>
+                        <span className="text-2xl font-extrabold text-white">{horoscope.color}</span>
+                    </div>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+
+            {showMeaning && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20 w-full max-w-md">
+                        <div className="flex justify-between items-start mb-4">
+                            <h2 className="text-white text-2xl font-bold">
+                                Lucky Number {horoscope.luckyNumber}
+                            </h2>
+                            <button 
+                                onClick={() => setShowMeaning(false)}
+                                className="rounded-md hover:bg-white/10 p-1 transition-colors text-white"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <p className="text-purple-100 leading-relaxed mb-4">
+                            {horoscope.luckyNumberMeaning || "No meaning available"}
+                        </p>
+                        <Button 
+                            onClick={() => setShowMeaning(false)} 
+                            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
-
-const FeatureItem: React.FC<{ icon: React.ElementType, label: string, value: string, color: string }> = ({ icon: Icon, label, value, color }) => (
-    <div className="flex flex-col items-start p-3 bg-background rounded-md border">
-        <div className="flex items-center space-x-2 mb-1">
-            <Icon className={cn("w-4 h-4", color)} />
-            <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        </div>
-        <span className="text-xl font-extrabold text-primary">{value}</span>
-    </div>
-);
 
 interface HoroscopeDisplayProps {
     userData: UserData;
@@ -74,88 +94,56 @@ interface HoroscopeDisplayProps {
     onReset: () => void;
 }
 
-const MoodInsight: React.FC<{ mood: UserData['mood'] }> = ({ mood }) => {
-    let Icon: React.ElementType;
-    let message: string;
-    let className: string;
-
-    switch (mood) {
-        case 'Happy':
-            Icon = Smile;
-            message = "Your positive energy is aligned with the stars! Expect a smooth day.";
-            className = "border-green-500 bg-green-500/10 text-green-600 dark:text-green-400";
-            break;
-        case 'Stressed':
-            Icon = AlertTriangle;
-            message = "Feeling stressed? Focus on self-care today. The stars suggest reflection will bring clarity.";
-            className = "border-yellow-500 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
-            break;
-        case 'Neutral':
-        default:
-            Icon = Frown;
-            message = "A neutral outlook. The cosmos encourages you to seek balance and new opportunities.";
-            className = "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400";
-            break;
-    }
-
+const UserDetailsCard: React.FC<{ userData: UserData }> = ({ userData }) => {
+    const zodiacDetails = ZODIAC_SIGN_DETAILS[userData.zodiacSign];
+    
     return (
-        <div className={cn("p-4 rounded-lg border-l-4 shadow-sm flex items-start space-x-3", className)}>
-            <Icon className="w-5 h-5 mt-0.5 shrink-0" />
-            <p className="text-sm font-medium">{message}</p>
+        <div className="bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20">
+            <div className="text-center">
+                <div className="text-6xl mb-4 font-bold text-white">{userData.zodiacSign}</div>
+                <h2 className="text-white text-2xl font-bold mb-2">{userData.zodiacSign}</h2>
+                <p className="text-purple-200 text-lg mb-4">{zodiacDetails.element} Sign</p>
+                <div className="flex items-center justify-center gap-2 text-purple-200">
+                    <Calendar className="w-4 h-4" />
+                    <span>{format(new Date(), 'EEEE, MMMM d, yyyy')}</span>
+                </div>
+                <Separator className="bg-white/10 my-4" />
+                <div className="space-y-2 text-left">
+                    <p className="text-purple-100"><span className="font-semibold text-white">Birth Date:</span> {format(userData.birthDate, 'PPP')}</p>
+                    <p className="text-purple-100"><span className="font-semibold text-white">Birth Time:</span> {userData.birthTime}</p>
+                    <p className="text-purple-100"><span className="font-semibold text-white">Height:</span> {userData.height} cm</p>
+                    <p className="text-purple-100"><span className="font-semibold text-white">Traits:</span> {zodiacDetails.traits.join(', ')}</p>
+                </div>
+            </div>
         </div>
     );
 };
 
-const UserDetailsCard: React.FC<{ userData: UserData }> = ({ userData }) => (
-    <Card className="p-6 shadow-lg bg-secondary/50">
-        <h3 className="text-xl font-bold mb-4 flex items-center text-primary">
-            <User className="w-5 h-5 mr-2" /> Your Profile
-        </h3>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-            <DetailItem icon={Star} label="Zodiac Sign" value={userData.zodiacSign} />
-            <DetailItem icon={Heart} label="Current Mood" value={userData.mood} />
-            <DetailItem icon={Calendar} label="Birth Date" value={format(userData.birthDate, 'PPP')} />
-            <DetailItem icon={Clock} label="Birth Time" value={userData.birthTime} />
-            <DetailItem icon={Weight} label="Weight" value={`${userData.weight} kg`} />
-            <DetailItem icon={Ruler} label="Height" value={`${userData.height} cm`} />
-        </div>
-    </Card>
-);
-
-const DetailItem: React.FC<{ icon: React.ElementType, label: string, value: string }> = ({ icon: Icon, label, value }) => (
-    <div className="flex items-center space-x-2">
-        <Icon className="w-4 h-4 text-muted-foreground" />
-        <span className="font-medium text-muted-foreground">{label}:</span>
-        <span className="font-semibold text-foreground">{value}</span>
-    </div>
-);
-
-
 const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscopes, onReset }) => {
     return (
-        <div className="w-full max-w-5xl mx-auto space-y-10 p-4">
-            <div className="text-center space-y-3">
-                <h1 className="text-5xl font-extrabold tracking-tighter text-primary">
-                    <Star className="inline w-10 h-10 mr-3 text-yellow-500 fill-yellow-500" />
+        <div className="w-full space-y-6">
+            <div className="text-center space-y-2">
+                <h1 className="text-white text-4xl font-bold">
                     Cosmic Insight
                 </h1>
-                <p className="text-2xl text-muted-foreground font-light">
+                <p className="text-purple-200 text-lg">
                     Your personalized forecast for {userData.zodiacSign}
                 </p>
             </div>
 
             <UserDetailsCard userData={userData} />
-            
-            <MoodInsight mood={userData.mood} />
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="space-y-6">
                 <HoroscopeCard horoscope={horoscopes.today} />
                 <HoroscopeCard horoscope={horoscopes.tomorrow} />
             </div>
 
             <div className="text-center pt-6">
-                <Button onClick={onReset} variant="outline" className="text-lg px-8 py-6 border-2 border-primary hover:bg-primary/10">
-                    Enter New Details
+                <Button 
+                    onClick={onReset} 
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white border w-full"
+                >
+                    Get Another Reading
                 </Button>
             </div>
         </div>
