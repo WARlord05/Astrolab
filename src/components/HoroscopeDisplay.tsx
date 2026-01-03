@@ -75,24 +75,24 @@ interface HoroscopeDisplayProps {
 }
 
 const MoodInsight: React.FC<{ mood: UserData['mood'] }> = ({ mood }) => {
-    let icon: React.ElementType;
+    let Icon: React.ElementType;
     let message: string;
     let className: string;
 
     switch (mood) {
         case 'Happy':
-            icon = Smile;
+            Icon = Smile;
             message = "Your positive energy is aligned with the stars! Expect a smooth day.";
             className = "border-green-500 bg-green-500/10 text-green-600 dark:text-green-400";
             break;
         case 'Stressed':
-            icon = AlertTriangle;
+            Icon = AlertTriangle;
             message = "Feeling stressed? Focus on self-care today. The stars suggest reflection will bring clarity.";
             className = "border-yellow-500 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
             break;
         case 'Neutral':
         default:
-            icon = Frown;
+            Icon = Frown;
             message = "A neutral outlook. The cosmos encourages you to seek balance and new opportunities.";
             className = "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400";
             break;
