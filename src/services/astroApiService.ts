@@ -124,7 +124,14 @@ export const fetchDailyHoroscope = async (sign: string, day: string = 'today'): 
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data: ApiHoroscope = await response.json();
+    const responseText = await response.text();
+    console.log('✅ Response text:', responseText);
+
+    if (!responseText) {
+      throw new Error('Empty response from API');
+    }
+
+    const data: ApiHoroscope = JSON.parse(responseText);
     console.log('✅ Response data:', data);
 
     if (!data.success) {
@@ -134,7 +141,7 @@ export const fetchDailyHoroscope = async (sign: string, day: string = 'today'): 
     console.log('✅ Horoscope fetched successfully!');
     return data.data;
   } catch (error) {
-    console.error('❌ Error fetching daily horoscope:', error);
+    console.error('❌ Error fetching daily horoscope:', error instanceof Error ? error.message : error);
     throw error;
   }
 };
@@ -153,7 +160,12 @@ export const fetchWeeklyHoroscope = async (sign: string): Promise<HoroscopeData 
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data: ApiHoroscope = await response.json();
+    const responseText = await response.text();
+    if (!responseText) {
+      throw new Error('Empty response from API');
+    }
+
+    const data: ApiHoroscope = JSON.parse(responseText);
 
     if (!data.success) {
       throw new Error('API returned unsuccessful response');
@@ -161,7 +173,7 @@ export const fetchWeeklyHoroscope = async (sign: string): Promise<HoroscopeData 
 
     return data.data;
   } catch (error) {
-    console.error('Error fetching weekly horoscope:', error);
+    console.error('Error fetching weekly horoscope:', error instanceof Error ? error.message : error);
     throw error;
   }
 };
@@ -180,7 +192,12 @@ export const fetchMonthlyHoroscope = async (sign: string): Promise<HoroscopeData
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data: ApiHoroscope = await response.json();
+    const responseText = await response.text();
+    if (!responseText) {
+      throw new Error('Empty response from API');
+    }
+
+    const data: ApiHoroscope = JSON.parse(responseText);
 
     if (!data.success) {
       throw new Error('API returned unsuccessful response');
@@ -188,7 +205,7 @@ export const fetchMonthlyHoroscope = async (sign: string): Promise<HoroscopeData
 
     return data.data;
   } catch (error) {
-    console.error('Error fetching monthly horoscope:', error);
+    console.error('Error fetching monthly horoscope:', error instanceof Error ? error.message : error);
     throw error;
   }
 };
