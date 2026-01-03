@@ -14,9 +14,4 @@ export default defineConfig(() => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
-    'import.meta.env.VITE_API_URL_SECONDARY': JSON.stringify(process.env.VITE_API_URL_SECONDARY),
-    'import.meta.env.VITE_API_URL_TERTIARY': JSON.stringify(process.env.VITE_API_URL_TERTIARY),
-  },
 }));

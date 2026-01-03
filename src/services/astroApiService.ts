@@ -11,6 +11,14 @@ const API_URLS = [
   'http://localhost:5000/api/v1', // Local development fallback
 ];
 
+// Log configured endpoints
+console.log('🔧 API Service initialized with endpoints:', API_URLS);
+console.log('Environment variables:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  VITE_API_URL_SECONDARY: import.meta.env.VITE_API_URL_SECONDARY,
+  VITE_API_URL_TERTIARY: import.meta.env.VITE_API_URL_TERTIARY,
+});
+
 let currentApiIndex = 0;
 
 const getNextApiUrl = (fallback: boolean = true): string => {
@@ -53,7 +61,11 @@ const fetchWithTimeout = async (url: string, timeoutMs: number = 8000): Promise<
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, { 
+      signal: controller.signal,
+      mode: 'cors',
+      credentials: 'omit',
+    });
     clearTimeout(timeoutId);
     return response;
   } catch (error) {
