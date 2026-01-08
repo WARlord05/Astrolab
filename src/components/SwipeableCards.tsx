@@ -1,13 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Horoscope, UserData, ZODIAC_SIGN_DETAILS } from '@/lib/astrology';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Horoscope } from '@/lib/astrology';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { HoroscopeCard } from './HoroscopeCard';
-import { Separator } from '@/components/ui/separator';
-import { Calendar } from 'lucide-react';
-import { format } from 'date-fns';
 
 interface SwipeableCardsProps {
-  userData: UserData;
   forecasts: {
     yesterday: Horoscope | null;
     today: Horoscope;
@@ -21,24 +17,23 @@ interface SwipeableCardsProps {
 }
 
 export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
-  userData,
   forecasts,
   isLoadingExtended,
   translatedHoroscopes,
   onLoadTab,
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(1); // Start with Today (profile is 0)
+  const [currentIndex, setCurrentIndex] = useState(1); // Start with Today
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const tabs = ['profile', 'yesterday', 'today', 'tomorrow', 'weekly', 'monthly'] as const;
+  const tabs = ['yesterday', 'today', 'tomorrow', 'weekly', 'monthly'] as const;
   const currentTab = tabs[currentIndex];
-  const currentForecast = currentTab === 'profile' ? null : forecasts[currentTab as Exclude<typeof currentTab, 'profile'>] || null;
+  const currentForecast = forecasts[currentTab] || null;
 
   useEffect(() => {
-    if (currentTab !== 'profile' && currentForecast) {
-      onLoadTab(currentTab as Exclude<typeof currentTab, 'profile'>);
+    if (currentForecast) {
+      onLoadTab(currentTab);
     }
   }, [currentIndex]);
 
@@ -80,7 +75,6 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
 
   const getTabLabel = (tab: typeof tabs[number]) => {
     const labels = {
-      profile: 'Profile',
       yesterday: 'Yesterday',
       today: 'Today',
       tomorrow: 'Tomorrow',
@@ -122,30 +116,10 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
 
         {/* Main card with animation */}
         <div className="absolute inset-0 transition-all duration-300 ease-out w-full h-full">
-          {currentTab === 'profile' ? (
-            <div className="bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-lg rounded-3xl p-6 shadow-2xl border border-white/20 w-full h-full flex flex-col">
-              <div className="text-center space-y-3">
-                <div className="text-5xl font-bold text-white">{userData.zodiacSign}</div>
-                <p className="text-purple-200 text-base">{ZODIAC_SIGN_DETAILS[userData.zodiacSign].element} Sign</p>
-                <div className="flex items-center justify-center gap-2 text-purple-200 text-sm">
-                  <Calendar className="w-4 h-4" />
-                  <span>{format(new Date(), 'MMM d, yyyy')}</span>
-                </div>
-              </div>
-              <Separator className="bg-white/10 my-4 flex-shrink-0" />
-              <div className="space-y-2 text-left flex-grow overflow-y-auto">
-                <p className="text-purple-100 text-sm"><span className="font-semibold text-white">Birth:</span> {format(userData.birthDate, 'PPP')}</p>
-                <p className="text-purple-100 text-sm"><span className="font-semibold text-white">Time:</span> {userData.birthTime}</p>
-                <p className="text-purple-100 text-sm"><span className="font-semibold text-white">Height:</span> {userData.height} cm</p>
-                <p className="text-purple-100 text-sm"><span className="font-semibold text-white">Traits:</span> {ZODIAC_SIGN_DETAILS[userData.zodiacSign].traits.join(', ')}</p>
-              </div>
-            </div>
-          ) : (
-            <HoroscopeCard
-              horoscope={translatedHoroscopes?.[currentTab] || currentForecast}
-              showDetails={currentTab === 'today' || currentTab === 'tomorrow'}
-            />
-          )}
+          <HoroscopeCard
+            horoscope={translatedHoroscopes?.[currentTab] || currentForecast}
+            showDetails={currentTab === 'today' || currentTab === 'tomorrow'}
+          />
         </div>
       </div>
 

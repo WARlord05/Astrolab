@@ -15,11 +15,11 @@ interface HoroscopeDisplayProps {
     onReset: () => void;
 }
 
-const UserDetailsCard: React.FC<{ userData: UserData; className?: string }> = ({ userData, className = '' }) => {
+const UserDetailsCard: React.FC<{ userData: UserData }> = ({ userData }) => {
     const zodiacDetails = ZODIAC_SIGN_DETAILS[userData.zodiacSign];
     
     return (
-        <div className={`bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20 ${className}`}>
+        <div className="bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20">
             <div className="text-center">
                 <div className="text-6xl mb-4 font-bold text-white">{userData.zodiacSign}</div>
                 <h2 className="text-white text-2xl font-bold mb-2">{userData.zodiacSign}</h2>
@@ -232,7 +232,7 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                 </p>
             </div>
 
-            <UserDetailsCard userData={userData} className="hidden md:block" />
+            <UserDetailsCard userData={userData} />
 
             {/* Tabs */}
             <div className="flex gap-3 justify-center flex-wrap bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
@@ -307,7 +307,6 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
             {/* Mobile Layout - Tinder Style Cards */}
             <div className="md:hidden">
                 <SwipeableCards
-                    userData={userData}
                     forecasts={{
                         yesterday: yesterdayData,
                         today: displayHoroscopes.today,
