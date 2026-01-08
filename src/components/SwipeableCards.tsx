@@ -108,36 +108,7 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
 
   return (
     <div className="w-full space-y-4">
-      {/* Card Stack */}
-      <div
-        ref={containerRef}
-        className="relative w-full min-h-[500px] perspective"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* Background cards for depth effect */}
-        {[2, 1].map((offset) => (
-          <div
-            key={offset}
-            className="absolute inset-0 bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 transform"
-            style={{
-              transform: `translateY(${offset * 8}px) scale(${1 - offset * 0.02})`,
-              zIndex: -offset,
-              opacity: 0.5,
-            }}
-          />
-        ))}
-
-        {/* Main card with animation */}
-        <div className="absolute inset-0 transition-all duration-300 ease-out w-full h-full">
-          <HoroscopeCard
-            horoscope={translatedHoroscopes?.[currentTab] || currentForecast}
-            showDetails={currentTab === 'today' || currentTab === 'tomorrow'}
-          />
-        </div>
-      </div>
-
-      {/* Card Counter and Swipe Indicator */}
+      {/* Card Counter and Swipe Indicator - Above Card */}
       <div className="flex items-center justify-center gap-4">
         <button
           onClick={goToPrevious}
@@ -188,6 +159,35 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
             aria-label={`Go to ${getTabLabel(tabs[index])}`}
           />
         ))}
+      </div>
+
+      {/* Card Stack */}
+      <div
+        ref={containerRef}
+        className="relative w-full min-h-[500px] perspective"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Background cards for depth effect */}
+        {[2, 1].map((offset) => (
+          <div
+            key={offset}
+            className="absolute inset-0 bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 transform"
+            style={{
+              transform: `translateY(${offset * 8}px) scale(${1 - offset * 0.02})`,
+              zIndex: -offset,
+              opacity: 0.5,
+            }}
+          />
+        ))}
+
+        {/* Main card with animation */}
+        <div className="absolute inset-0 transition-all duration-300 ease-out w-full h-full">
+          <HoroscopeCard
+            horoscope={translatedHoroscopes?.[currentTab] || currentForecast}
+            showDetails={currentTab === 'today' || currentTab === 'tomorrow'}
+          />
+        </div>
       </div>
     </div>
   );
