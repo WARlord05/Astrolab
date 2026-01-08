@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Horoscope, UserData, ZODIAC_SIGN_DETAILS } from '@/lib/astrology';
 import { Separator } from '@/components/ui/separator';
 import { Star, Calendar, Zap, Palette, User, Clock, Heart, TrendingUp, X, Droplet, Sparkles, Globe } from 'lucide-react';
@@ -161,68 +161,73 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
 
     const displayHoroscopes = translatedHoroscopes || horoscopes;
     
+    // Load yesterday, weekly, and monthly forecasts on component mount
+    useEffect(() => {
+        const loadExtendedForecasts = async () => {
+            setIsLoadingExtended(true);
+            try {
+                // Load all three in parallel
+                const [yesterdayResult, weeklyResult, monthlyResult] = await Promise.allSettled([
+                    fetchDailyHoroscope(userData.zodiacSign, 'yesterday'),
+                    fetchWeeklyHoroscope(userData.zodiacSign),
+                    fetchMonthlyHoroscope(userData.zodiacSign),
+                ]);
+
+                // Process yesterday
+                if (yesterdayResult.status === 'fulfilled') {
+                    const data = yesterdayResult.value;
+                    setYesterdayData({
+                        prediction: typeof data === 'string' ? data : data.prediction,
+                        luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
+                        luckyColor: typeof data === 'string' ? '' : data.luckyColor,
+                        date: 'Yesterday',
+                        luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                        sign: userData.zodiacSign,
+                    });
+                }
+
+                // Process weekly
+                if (weeklyResult.status === 'fulfilled') {
+                    const data = weeklyResult.value;
+                    setWeeklyData({
+                        prediction: typeof data === 'string' ? data : data.prediction,
+                        luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
+                        luckyColor: typeof data === 'string' ? '' : data.luckyColor,
+                        date: 'This Week',
+                        luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                        sign: userData.zodiacSign,
+                    });
+                }
+
+                // Process monthly
+                if (monthlyResult.status === 'fulfilled') {
+                    const data = monthlyResult.value;
+                    setMonthlyData({
+                        prediction: typeof data === 'string' ? data : data.prediction,
+                        luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
+                        luckyColor: typeof data === 'string' ? '' : data.luckyColor,
+                        date: 'This Month',
+                        luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                        sign: userData.zodiacSign,
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading extended forecasts:', error);
+            } finally {
+                setIsLoadingExtended(false);
+            }
+        };
+
+        if (userData) {
+            loadExtendedForecasts();
+        }
+    }, [userData]);
+    
     const handleTabChange = async (tab: 'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly') => {
         setActiveTab(tab);
         setTargetLanguage(null);
         setTranslatedHoroscopes(null);
         setTranslatedExtended({});
-
-        if (tab === 'yesterday' && !yesterdayData) {
-            setIsLoadingExtended(true);
-            try {
-                const data = await fetchDailyHoroscope(userData.zodiacSign, 'yesterday');
-                setYesterdayData({
-                    prediction: typeof data === 'string' ? data : data.prediction,
-                    luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
-                    luckyColor: typeof data === 'string' ? '' : data.luckyColor,
-                    date: 'Yesterday',
-                    luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
-                    sign: userData.zodiacSign,
-                });
-            } catch (error) {
-                console.error('Error fetching yesterday horoscope:', error);
-            } finally {
-                setIsLoadingExtended(false);
-            }
-        }
-
-        if (tab === 'weekly' && !weeklyData) {
-            setIsLoadingExtended(true);
-            try {
-                const data = await fetchWeeklyHoroscope(userData.zodiacSign);
-                setWeeklyData({
-                    prediction: typeof data === 'string' ? data : data.prediction,
-                    luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
-                    luckyColor: typeof data === 'string' ? '' : data.luckyColor,
-                    date: 'This Week',
-                    luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
-                    sign: userData.zodiacSign,
-                });
-            } catch (error) {
-                console.error('Error fetching weekly horoscope:', error);
-            } finally {
-                setIsLoadingExtended(false);
-            }
-        }
-
-        if (tab === 'monthly' && !monthlyData) {
-            setIsLoadingExtended(true);
-            try {
-                const data = await fetchMonthlyHoroscope(userData.zodiacSign);
-                setMonthlyData({
-                    prediction: typeof data === 'string' ? data : data.prediction,
-                    luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
-                    luckyColor: typeof data === 'string' ? '' : data.luckyColor,
-                    date: 'This Month',
-                    luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
-                    sign: userData.zodiacSign,
-                });
-            } catch (error) {
-                console.error('Error fetching monthly horoscope:', error);
-            } finally {
-                setIsLoadingExtended(false);
-            }
-        }
     };
     return (
         <div className="w-full space-y-6">
