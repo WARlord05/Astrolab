@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { fetchWeeklyHoroscope, fetchMonthlyHoroscope, HoroscopeData, fetchDailyHoroscope } from '@/services/astroApiService';
 import { HoroscopeCard } from './HoroscopeCard';
 import { SwipeableCards } from './SwipeableCards';
+import { Capacitor } from '@capacitor/core';
 
 interface HoroscopeDisplayProps {
     userData: UserData;
@@ -50,6 +51,7 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
     const [weeklyData, setWeeklyData] = useState<Horoscope | null>(null);
     const [monthlyData, setMonthlyData] = useState<Horoscope | null>(null);
     const [isLoadingExtended, setIsLoadingExtended] = useState(false);
+    const [isNativeApp, setIsNativeApp] = useState(false);
 
     const languages = [
         { code: 'es', name: '🇪🇸 Spanish' },
@@ -160,6 +162,19 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
     };
 
     const displayHoroscopes = translatedHoroscopes || horoscopes;
+    
+    // Detect if running in native app
+    useEffect(() => {
+        const detectNativeApp = async () => {
+            try {
+                const isNative = Capacitor.isNativePlatform();
+                setIsNativeApp(isNative);
+            } catch (error) {
+                setIsNativeApp(false);
+            }
+        };
+        detectNativeApp();
+    }, []);
     
     // Load yesterday, weekly, and monthly forecasts on component mount
     useEffect(() => {
@@ -305,11 +320,13 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
             </div>
 
             <div className="flex gap-2 flex-wrap justify-center">
-                <div className="w-full text-center bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-4">
-                    <p className="text-yellow-200 text-sm">
-                        ⚠️ Translation feature coming soon. Please use chome's built-in translation for now. ⚠️
-                    </p>
-                </div>
+                {!isNativeApp && (
+                    <div className="w-full text-center bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-4">
+                        <p className="text-yellow-200 text-sm">
+                            ⚠️ Translation feature coming soon. Please use chome's built-in translation for now. ⚠️
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* Mobile Layout - Tinder Style Cards */}
