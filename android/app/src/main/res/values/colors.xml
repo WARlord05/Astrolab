@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Astrolab Theme Colors -->
+    <color name="colorPrimary">#6B21A8</color>
+    <color name="colorPrimaryDark">#581C87</color>
+    <color name="colorAccent">#EC4899</color>
+    
+    <!-- Additional colors -->
+    <color name="colorBackground">#1F1A3C</color>
+    <color name="colorSurface">#2D1B4E</color>
+    <color name="colorText">#FFFFFF</color>
+    <color name="colorTextSecondary">#C9B1E6</color>
+</resources>

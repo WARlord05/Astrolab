@@ -1,0 +1,11 @@
+{
+  "directories": {
+    "source": "./assets",
+    "output": "./"
+  },
+  "platforms": {
+    "android": {
+      "iconBackgroundColor": "#6B21A8"
+    }
+  }
+}
