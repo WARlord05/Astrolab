@@ -174,9 +174,10 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                 setYesterdayData({
                     prediction: typeof data === 'string' ? data : data.prediction,
                     luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
-                    color: typeof data === 'string' ? '' : data.color,
+                    luckyColor: typeof data === 'string' ? '' : data.luckyColor,
                     date: 'Yesterday',
                     luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                    sign: userData.zodiacSign,
                 });
             } catch (error) {
                 console.error('Error fetching yesterday horoscope:', error);
@@ -192,9 +193,10 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                 setWeeklyData({
                     prediction: typeof data === 'string' ? data : data.prediction,
                     luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
-                    color: typeof data === 'string' ? '' : data.color,
+                    luckyColor: typeof data === 'string' ? '' : data.luckyColor,
                     date: 'This Week',
                     luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                    sign: userData.zodiacSign,
                 });
             } catch (error) {
                 console.error('Error fetching weekly horoscope:', error);
@@ -210,9 +212,10 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                 setMonthlyData({
                     prediction: typeof data === 'string' ? data : data.prediction,
                     luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
-                    color: typeof data === 'string' ? '' : data.color,
+                    luckyColor: typeof data === 'string' ? '' : data.luckyColor,
                     date: 'This Month',
                     luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                    sign: userData.zodiacSign,
                 });
             } catch (error) {
                 console.error('Error fetching monthly horoscope:', error);

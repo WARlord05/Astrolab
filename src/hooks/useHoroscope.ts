@@ -53,7 +53,7 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
       prediction: typeof todayData === 'object' ? (todayData as any).prediction : todayData,
       luckyNumber: typeof todayData === 'object' ? (todayData as any).luckyNumber : null,
       luckyNumberMeaning: typeof todayData === 'object' ? (todayData as any).luckyNumberMeaning : null,
-      color: typeof todayData === 'object' ? (todayData as any).luckyColor : null,
+      luckyColor: typeof todayData === 'object' ? (todayData as any).luckyColor : null,
     },
     tomorrow: {
       date: tomorrowDate,
@@ -61,7 +61,7 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
       prediction: typeof tomorrowData === 'object' ? (tomorrowData as any).prediction : tomorrowData,
       luckyNumber: typeof tomorrowData === 'object' ? (tomorrowData as any).luckyNumber : null,
       luckyNumberMeaning: typeof tomorrowData === 'object' ? (tomorrowData as any).luckyNumberMeaning : null,
-      color: typeof tomorrowData === 'object' ? (tomorrowData as any).luckyColor : null,
+      luckyColor: typeof tomorrowData === 'object' ? (tomorrowData as any).luckyColor : null,
     },
   } : null;
 

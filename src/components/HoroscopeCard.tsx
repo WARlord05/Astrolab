@@ -64,7 +64,7 @@ export const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ horoscope, showDet
                                     <Palette className="w-4 h-4 text-blue-400 flex-shrink-0" />
                                     <span className="text-xs font-medium text-blue-300/80 uppercase tracking-wide">Color</span>
                                 </div>
-                                <span className="text-lg font-extrabold text-white line-clamp-2">{horoscope.color}</span>
+                                <span className="text-lg font-extrabold text-white line-clamp-2">{horoscope.luckyColor}</span>
                             </div>
                         </div>
                     </>

@@ -67,14 +67,6 @@ export const getZodiacSignFromDate = (date: Date): ZodiacSign => {
   return 'Aries'; // Default fallback
 };
 
-export interface Horoscope {
-  date: string;
-  sign: ZodiacSign;
-  prediction: string;
-  luckyNumber: number;
-  color: string;
-}
-
 export interface ZodiacSignDetail {
   dates: string;
   element: 'Fire' | 'Earth' | 'Air' | 'Water';
@@ -176,5 +168,5 @@ export interface Horoscope {
   prediction: string;
   luckyNumber: number | null;
   luckyNumberMeaning: string | null;
-  color: string | null;
+  luckyColor: string | null;
 }

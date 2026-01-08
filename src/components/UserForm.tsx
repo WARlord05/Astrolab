@@ -55,8 +55,11 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
     const zodiacSign = getZodiacSignFromDate(data.birthDate);
     
     const userDataWithZodiac: UserData = {
-      ...data,
       zodiacSign,
+      weight: data.weight,
+      height: data.height,
+      birthDate: data.birthDate,
+      birthTime: data.birthTime,
     };
     
     onSubmitData(userDataWithZodiac);
@@ -213,7 +216,6 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
                             table: "w-full border-collapse",
                             head_row: "flex mb-2 gap-2",
                             head_cell: "w-full text-center text-xs font-semibold text-slate-400 rounded-md",
-                            body: "flex flex-col gap-2",
                             row: "flex gap-2 w-full",
                             cell: "h-8 w-full text-center text-sm relative p-0 focus-within:relative focus-within:z-20",
                             day: "h-8 w-full rounded font-medium text-slate-300 hover:bg-slate-700 transition-colors",
