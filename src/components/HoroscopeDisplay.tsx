@@ -242,8 +242,8 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
 
             <UserDetailsCard userData={userData} />
 
-            {/* Tabs */}
-            <div className="flex gap-3 justify-center flex-wrap bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+            {/* Tabs - Hidden on mobile, visible on desktop */}
+            <div className="hidden md:flex gap-3 justify-center flex-wrap bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
                 <button
                     onClick={() => handleTabChange('yesterday')}
                     className={cn(
