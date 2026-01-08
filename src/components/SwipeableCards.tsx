@@ -25,6 +25,8 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
   const [currentIndex, setCurrentIndex] = useState(1); // Start with Today
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [touchStartY, setTouchStartY] = useState(0);
+  const [touchEndY, setTouchEndY] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const tabs = ['yesterday', 'today', 'tomorrow', 'weekly', 'monthly'] as const;
@@ -39,24 +41,36 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     setTouchEnd(e.changedTouches[0].clientX);
+    setTouchEndY(e.changedTouches[0].clientY);
     handleSwipe();
   };
 
   const handleSwipe = () => {
-    if (touchStart - touchEnd > 50) {
-      // Swiped left - next card
-      if (currentIndex < tabs.length - 1) {
-        setCurrentIndex(currentIndex + 1);
+    const horizontalDistance = Math.abs(touchStart - touchEnd);
+    const verticalDistance = Math.abs(touchStartY - touchEndY);
+    
+    // Minimum swipe distance of 100px for more deliberate swipes
+    const minSwipeDistance = 100;
+    
+    // Only trigger swipe if horizontal movement is significantly greater than vertical
+    // This prevents vertical scrolling from triggering card changes
+    if (horizontalDistance > verticalDistance && horizontalDistance > minSwipeDistance) {
+      if (touchStart - touchEnd > minSwipeDistance) {
+        // Swiped left - next card
+        if (currentIndex < tabs.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        }
       }
-    }
-    if (touchEnd - touchStart > 50) {
-      // Swiped right - previous card
-      if (currentIndex > 0) {
-        setCurrentIndex(currentIndex - 1);
+      if (touchEnd - touchStart > minSwipeDistance) {
+        // Swiped right - previous card
+        if (currentIndex > 0) {
+          setCurrentIndex(currentIndex - 1);
+        }
       }
     }
   };
