@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import UserForm from "@/components/UserForm";
 import HoroscopeDisplay from "@/components/HoroscopeDisplay";
 import { UserData, Horoscope } from "@/lib/astrology";
@@ -42,7 +41,7 @@ const Index = () => {
         variant: "destructive",
       });
     }
-  }, [isError, error, toast]);
+  }, [isError, error]);
 
   const handleFormSubmit = (data: UserData) => {
     setUserData(data);
@@ -94,11 +93,7 @@ const Index = () => {
         )}
       </div>
 
-      {!userData && (
-        <div className="absolute bottom-8 text-center text-purple-200 text-sm pointer-events-none">
-          <MadeWithDyad />
-        </div>
-      )}
+      {/* MadeWithDyad component removed */}
     </div>
   );
 };

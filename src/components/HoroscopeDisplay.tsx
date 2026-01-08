@@ -1,92 +1,13 @@
 import React, { useState } from 'react';
 import { Horoscope, UserData, ZODIAC_SIGN_DETAILS } from '@/lib/astrology';
 import { Separator } from '@/components/ui/separator';
-import { Star, Calendar, Zap, Palette, User, Clock, Heart, TrendingUp, X, Droplet, Sparkles } from 'lucide-react';
+import { Star, Calendar, Zap, Palette, User, Clock, Heart, TrendingUp, X, Droplet, Sparkles, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-
-interface HoroscopeCardProps {
-    horoscope: Horoscope;
-}
-
-const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ horoscope }) => {
-    const [showMeaning, setShowMeaning] = useState(false);
-    const todayFormatted = format(new Date(), 'PPP');
-    const isToday = horoscope.date === todayFormatted;
-
-    return (
-        <>
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20 space-y-6">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h3 className="text-white text-xl font-bold flex items-center gap-2 mb-1">
-                            <Sparkles className="w-5 h-5 text-yellow-400" />
-                            {isToday ? "Daily Forecast" : "Tomorrow's Forecast"}
-                        </h3>
-                        <p className="text-purple-200 text-sm">{horoscope.date}</p>
-                    </div>
-                </div>
-
-                <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                    <p className="text-purple-100 leading-relaxed italic">
-                        "{horoscope.prediction}"
-                    </p>
-                </div>
-
-                <Separator className="bg-white/10" />
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div 
-                        onClick={() => setShowMeaning(true)} 
-                        className="cursor-pointer hover:opacity-80 transition-opacity p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/10"
-                    >
-                        <div className="flex items-center gap-2 mb-2">
-                            <Zap className="w-4 h-4 text-red-400" />
-                            <span className="text-xs font-medium text-white/70">Lucky Number</span>
-                        </div>
-                        <span className="text-2xl font-extrabold text-white">{horoscope.luckyNumber}</span>
-                    </div>
-
-                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Palette className="w-4 h-4 text-blue-400" />
-                            <span className="text-xs font-medium text-white/70">Lucky Color</span>
-                        </div>
-                        <span className="text-2xl font-extrabold text-white">{horoscope.color}</span>
-                    </div>
-                </div>
-            </div>
-
-            {showMeaning && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20 w-full max-w-md">
-                        <div className="flex justify-between items-start mb-4">
-                            <h2 className="text-white text-2xl font-bold">
-                                Lucky Number {horoscope.luckyNumber}
-                            </h2>
-                            <button 
-                                onClick={() => setShowMeaning(false)}
-                                className="rounded-md hover:bg-white/10 p-1 transition-colors text-white"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <p className="text-purple-100 leading-relaxed mb-4">
-                            {horoscope.luckyNumberMeaning || "No meaning available"}
-                        </p>
-                        <Button 
-                            onClick={() => setShowMeaning(false)} 
-                            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                        >
-                            Close
-                        </Button>
-                    </div>
-                </div>
-            )}
-        </>
-    );
-};
+import { fetchWeeklyHoroscope, fetchMonthlyHoroscope, HoroscopeData, fetchDailyHoroscope } from '@/services/astroApiService';
+import { HoroscopeCard } from './HoroscopeCard';
+import { SwipeableCards } from './SwipeableCards';
 
 interface HoroscopeDisplayProps {
     userData: UserData;
@@ -120,11 +41,191 @@ const UserDetailsCard: React.FC<{ userData: UserData }> = ({ userData }) => {
 };
 
 const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscopes, onReset }) => {
+    const [activeTab, setActiveTab] = useState<'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly'>('today');
+    const [targetLanguage, setTargetLanguage] = useState<string | null>(null);
+    const [translatedHoroscopes, setTranslatedHoroscopes] = useState<{ today: Horoscope; tomorrow: Horoscope } | null>(null);
+    const [translatedExtended, setTranslatedExtended] = useState<{ yesterday?: Horoscope; weekly?: Horoscope; monthly?: Horoscope }>({});
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [yesterdayData, setYesterdayData] = useState<Horoscope | null>(null);
+    const [weeklyData, setWeeklyData] = useState<Horoscope | null>(null);
+    const [monthlyData, setMonthlyData] = useState<Horoscope | null>(null);
+    const [isLoadingExtended, setIsLoadingExtended] = useState(false);
+
+    const languages = [
+        { code: 'es', name: '🇪🇸 Spanish' },
+        { code: 'fr', name: '🇫🇷 French' },
+        { code: 'de', name: '🇩🇪 German' },
+        { code: 'it', name: '🇮🇹 Italian' },
+        { code: 'pt', name: '🇵🇹 Portuguese' },
+        { code: 'ja', name: '🇯🇵 Japanese' },
+        { code: 'zh', name: '🇨🇳 Chinese' },
+        { code: 'ko', name: '🇰🇷 Korean' },
+        { code: 'hi', name: '🇮🇳 Hindi' },
+        { code: 'mr', name: '🇮🇳 Marathi' },
+    ];
+
+    const translateText = async (text: string, targetLang: string) => {
+        try {
+            // Split text into chunks to avoid hitting URL length limits
+            const maxChunkLength = 500;
+            if (text.length > maxChunkLength) {
+                // Split by sentences
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+                let translated = '';
+                
+                for (const sentence of sentences) {
+                    const trimmed = sentence.trim();
+                    if (!trimmed) continue;
+                    
+                    const result = await translateSingleChunk(trimmed, targetLang);
+                    translated += result + ' ';
+                    
+                    // Add delay between requests
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+                return translated.trim();
+            } else {
+                return await translateSingleChunk(text, targetLang);
+            }
+        } catch (error) {
+            console.error('Translation error:', error);
+            return text;
+        }
+    };
+
+    const translateSingleChunk = async (text: string, targetLang: string): Promise<string> => {
+        try {
+            const response = await fetch('http://localhost:5000/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    q: text,
+                    source: 'auto',
+                    target: targetLang,
+                    format: 'text',
+                    api_key: ''
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.translatedText) {
+                return result.translatedText;
+            }
+            return text;
+        } catch (error) {
+            console.error('Translation chunk error:', error);
+            return text;
+        }
+    };
+
+    const handleTranslate = async (langCode: string) => {
+        setIsTranslating(true);
+        setTargetLanguage(langCode);
+
+        try {
+            if (activeTab === 'today' || activeTab === 'tomorrow') {
+                const translatedToday = { ...horoscopes.today };
+                const translatedTomorrow = { ...horoscopes.tomorrow };
+
+                translatedToday.prediction = await translateText(horoscopes.today.prediction, langCode);
+                await new Promise(resolve => setTimeout(resolve, 300)); // Delay between requests
+                translatedTomorrow.prediction = await translateText(horoscopes.tomorrow.prediction, langCode);
+
+                setTranslatedHoroscopes({
+                    today: translatedToday,
+                    tomorrow: translatedTomorrow,
+                });
+            } else if (activeTab === 'yesterday' && yesterdayData) {
+                const translated = { ...yesterdayData };
+                translated.prediction = await translateText(yesterdayData.prediction, langCode);
+                setTranslatedExtended({ yesterday: translated });
+            } else if (activeTab === 'weekly' && weeklyData) {
+                const translated = { ...weeklyData };
+                translated.prediction = await translateText(weeklyData.prediction, langCode);
+                setTranslatedExtended({ weekly: translated });
+            } else if (activeTab === 'monthly' && monthlyData) {
+                const translated = { ...monthlyData };
+                translated.prediction = await translateText(monthlyData.prediction, langCode);
+                setTranslatedExtended({ monthly: translated });
+            }
+        } catch (error) {
+            console.error('Error translating horoscopes:', error);
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    const displayHoroscopes = translatedHoroscopes || horoscopes;
+    
+    const handleTabChange = async (tab: 'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly') => {
+        setActiveTab(tab);
+        setTargetLanguage(null);
+        setTranslatedHoroscopes(null);
+        setTranslatedExtended({});
+
+        if (tab === 'yesterday' && !yesterdayData) {
+            setIsLoadingExtended(true);
+            try {
+                const data = await fetchDailyHoroscope(userData.zodiacSign, 'yesterday');
+                setYesterdayData({
+                    prediction: typeof data === 'string' ? data : data.prediction,
+                    luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
+                    color: typeof data === 'string' ? '' : data.color,
+                    date: 'Yesterday',
+                    luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                });
+            } catch (error) {
+                console.error('Error fetching yesterday horoscope:', error);
+            } finally {
+                setIsLoadingExtended(false);
+            }
+        }
+
+        if (tab === 'weekly' && !weeklyData) {
+            setIsLoadingExtended(true);
+            try {
+                const data = await fetchWeeklyHoroscope(userData.zodiacSign);
+                setWeeklyData({
+                    prediction: typeof data === 'string' ? data : data.prediction,
+                    luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
+                    color: typeof data === 'string' ? '' : data.color,
+                    date: 'This Week',
+                    luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                });
+            } catch (error) {
+                console.error('Error fetching weekly horoscope:', error);
+            } finally {
+                setIsLoadingExtended(false);
+            }
+        }
+
+        if (tab === 'monthly' && !monthlyData) {
+            setIsLoadingExtended(true);
+            try {
+                const data = await fetchMonthlyHoroscope(userData.zodiacSign);
+                setMonthlyData({
+                    prediction: typeof data === 'string' ? data : data.prediction,
+                    luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
+                    color: typeof data === 'string' ? '' : data.color,
+                    date: 'This Month',
+                    luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
+                });
+            } catch (error) {
+                console.error('Error fetching monthly horoscope:', error);
+            } finally {
+                setIsLoadingExtended(false);
+            }
+        }
+    };
     return (
         <div className="w-full space-y-6">
-            <div className="text-center space-y-2">
-                <h1 className="text-white text-4xl font-bold">
-                    Cosmic Insight
+            <div className="text-center space-y-3 mb-8">
+                <h1 className="text-white text-5xl font-bold bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">
+                    ✨ Cosmic Insight ✨
                 </h1>
                 <p className="text-purple-200 text-lg">
                     Your personalized forecast for {userData.zodiacSign}
@@ -133,9 +234,99 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
 
             <UserDetailsCard userData={userData} />
 
-            <div className="space-y-6">
-                <HoroscopeCard horoscope={horoscopes.today} />
-                <HoroscopeCard horoscope={horoscopes.tomorrow} />
+            {/* Tabs */}
+            <div className="flex gap-3 justify-center flex-wrap bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                <button
+                    onClick={() => handleTabChange('yesterday')}
+                    className={cn(
+                        "px-6 py-2 rounded-xl text-sm font-semibold transition-all border border-white/20",
+                        activeTab === 'yesterday'
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white hover:border-white/30"
+                    )}
+                    disabled={isLoadingExtended && activeTab !== 'yesterday'}
+                >
+                    {isLoadingExtended && activeTab === 'yesterday' ? '⏳ Loading' : 'Yesterday'}
+                </button>
+                <button
+                    onClick={() => handleTabChange('today')}
+                    className={cn(
+                        "px-6 py-2 rounded-xl text-sm font-semibold transition-all border border-white/20",
+                        activeTab === 'today'
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white hover:border-white/30"
+                    )}
+                >
+                    Today
+                </button>
+                <button
+                    onClick={() => handleTabChange('tomorrow')}
+                    className={cn(
+                        "px-6 py-2 rounded-xl text-sm font-semibold transition-all border border-white/20",
+                        activeTab === 'tomorrow'
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white hover:border-white/30"
+                    )}
+                >
+                    Tomorrow
+                </button>
+                <button
+                    onClick={() => handleTabChange('weekly')}
+                    className={cn(
+                        "px-6 py-2 rounded-xl text-sm font-semibold transition-all border border-white/20",
+                        activeTab === 'weekly'
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white hover:border-white/30"
+                    )}
+                    disabled={isLoadingExtended && activeTab !== 'weekly'}
+                >
+                    {isLoadingExtended && activeTab === 'weekly' ? '⏳ Loading' : 'Weekly'}
+                </button>
+                <button
+                    onClick={() => handleTabChange('monthly')}
+                    className={cn(
+                        "px-6 py-2 rounded-xl text-sm font-semibold transition-all border border-white/20",
+                        activeTab === 'monthly'
+                            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50"
+                            : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white hover:border-white/30"
+                    )}
+                    disabled={isLoadingExtended && activeTab !== 'monthly'}
+                >
+                    {isLoadingExtended && activeTab === 'monthly' ? '⏳ Loading' : 'Monthly'}
+                </button>
+            </div>
+
+            <div className="flex gap-2 flex-wrap justify-center">
+                <div className="w-full text-center bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-4">
+                    <p className="text-yellow-200 text-sm">
+                        ⚠️ Translation feature coming soon. Please use chome's built-in translation for now. ⚠️
+                    </p>
+                </div>
+            </div>
+
+            {/* Mobile Layout - Tinder Style Cards */}
+            <div className="md:hidden">
+                <SwipeableCards
+                    forecasts={{
+                        yesterday: yesterdayData,
+                        today: displayHoroscopes.today,
+                        tomorrow: displayHoroscopes.tomorrow,
+                        weekly: weeklyData,
+                        monthly: monthlyData,
+                    }}
+                    isLoadingExtended={isLoadingExtended}
+                    translatedHoroscopes={translatedExtended}
+                    onLoadTab={handleTabChange}
+                />
+            </div>
+
+            {/* Desktop Layout - Tab Based */}
+            <div className="hidden md:block space-y-6">
+                {activeTab === 'today' && <HoroscopeCard horoscope={displayHoroscopes.today} showDetails={true} />}
+                {activeTab === 'tomorrow' && <HoroscopeCard horoscope={displayHoroscopes.tomorrow} showDetails={true} />}
+                {activeTab === 'yesterday' && yesterdayData && <HoroscopeCard horoscope={translatedExtended.yesterday || yesterdayData} showDetails={false} />}
+                {activeTab === 'weekly' && weeklyData && <HoroscopeCard horoscope={translatedExtended.weekly || weeklyData} showDetails={false} />}
+                {activeTab === 'monthly' && monthlyData && <HoroscopeCard horoscope={translatedExtended.monthly || monthlyData} showDetails={false} />}
             </div>
 
             <div className="text-center pt-6">

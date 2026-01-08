@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { UserData, getZodiacSignFromDate } from "@/lib/astrology";
 import { toast } from "sonner";
 import { Haptics } from "@capacitor/haptics";
+import { differenceInYears } from "date-fns";
 
 // 1. Define Schema - Only collecting birth date, weight, and height
 const formSchema = z.object({
@@ -32,6 +33,7 @@ interface UserFormProps {
 
 const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -91,8 +93,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
                       placeholder="e.g., 70" 
                       className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                       {...field} 
-                      onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)} 
-                      value={field.value === undefined ? '' : field.value}
+                      value={field.value || ''}
                     />
                   </FormControl>
                   <FormMessage />
@@ -113,8 +114,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
                       placeholder="e.g., 175" 
                       className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                       {...field} 
-                      onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)} 
-                      value={field.value === undefined ? '' : field.value}
+                      value={field.value || ''}
                     />
                   </FormControl>
                   <FormMessage />
@@ -127,42 +127,134 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
           <FormField
             control={form.control}
             name="birthDate"
-            render={({ field }) => (
+            render={({ field }) => {
+              const age = field.value ? differenceInYears(new Date(), field.value) : null;
+              const zodiac = field.value ? getZodiacSignFromDate(field.value) : null;
+              
+              const setToday = () => {
+                field.onChange(new Date());
+                setIsDatePickerOpen(false);
+              };
+
+              const handleDateSelect = (date: Date | undefined) => {
+                field.onChange(date);
+                setIsDatePickerOpen(false);
+              };
+              
+              return (
               <FormItem className="flex flex-col">
-                <FormLabel className="text-white text-sm font-semibold">Birth Date</FormLabel>
-                <Popover>
+                <div className="flex items-center justify-between mb-3">
+                  <FormLabel className="text-white text-sm font-semibold">Birth Date</FormLabel>
+                  {age !== null && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-semibold">Age: {age}</span>
+                      {zodiac && <span className="text-xs text-purple-200">♈ {zodiac}</span>}
+                    </div>
+                  )}
+                </div>
+                
+                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full justify-start text-left font-normal bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white",
+                          "w-full justify-start text-left font-normal bg-white/20 border border-white/30 text-white hover:bg-white/30 hover:text-white transition-all rounded-lg",
                           !field.value && "text-white/50"
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="mr-3 h-4 w-4" />
+                        <span className="text-sm">{field.value ? format(field.value, "MMM d, yyyy") : "Select a date"}</span>
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                      captionLayout="dropdown"
-                      fromYear={1900}
-                      toYear={new Date().getFullYear()}
-                    />
+                  <PopoverContent 
+                    className="w-80 p-0 shadow-xl rounded-xl overflow-hidden fixed z-50" 
+                    align="center"
+                    style={{
+                      left: '50%',
+                      top: '35%',
+                      transform: 'translate(-50%, -50%)',
+                      maxHeight: '85vh',
+                      overflowY: 'auto'
+                    }}
+                  >
+                    <div className="bg-slate-900 p-6 border border-slate-700">
+                      {/* Header with month/year */}
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-white">
+                          {field.value ? format(field.value, "MMMM yyyy") : "Select date"}
+                        </h3>
+                      </div>
+
+                      {/* Calendar */}
+                      <div className="mb-4">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={handleDateSelect}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                          captionLayout="dropdown"
+                          fromYear={1900}
+                          toYear={new Date().getFullYear()}
+                          className="rounded-lg"
+                          classNames={{
+                            months: "flex flex-col",
+                            month: "space-y-4",
+                            caption: "flex gap-2 justify-between items-center px-2 mb-4",
+                            caption_label: "text-sm font-medium text-slate-200",
+                            nav: "flex gap-1",
+                            nav_button: "h-8 w-8 p-0 hover:bg-slate-700 rounded text-slate-400 hover:text-slate-200 transition-colors",
+                            nav_button_previous: "absolute left-1 w-8 h-8",
+                            nav_button_next: "absolute right-1 w-8 h-8",
+                            table: "w-full border-collapse",
+                            head_row: "flex mb-2 gap-2",
+                            head_cell: "w-full text-center text-xs font-semibold text-slate-400 rounded-md",
+                            body: "flex flex-col gap-2",
+                            row: "flex gap-2 w-full",
+                            cell: "h-8 w-full text-center text-sm relative p-0 focus-within:relative focus-within:z-20",
+                            day: "h-8 w-full rounded font-medium text-slate-300 hover:bg-slate-700 transition-colors",
+                            day_range_end: "day-range-end",
+                            day_selected: "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-md",
+                            day_today: "bg-slate-700 text-purple-300 font-semibold",
+                            day_outside: "text-slate-600",
+                            day_disabled: "text-slate-600 cursor-not-allowed",
+                            day_hidden: "invisible",
+                            ...{},
+                          }}
+                        />
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex gap-3 justify-end border-t border-slate-700 pt-4">
+                        <button
+                          type="button"
+                          onClick={setToday}
+                          className="px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
+                        >
+                          Today
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            field.onChange(null);
+                            setIsDatePickerOpen(false);
+                          }}
+                          className="px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
               </FormItem>
-            )}
+              );
+            }}
           />
 
           {/* Birth Time */}

@@ -20,12 +20,9 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
   const todayDate = format(new Date(), 'PPP');
   const tomorrowDate = format(addDays(new Date(), 1), 'PPP');
 
-  console.log('🌟 useHoroscope called with sign:', zodiacSign);
-
   const { data: todayData, isLoading: todayLoading, error: todayError } = useQuery({
     queryKey: ['horoscope', 'daily', zodiacSign, 'today'],
     queryFn: () => {
-      console.log('📅 Fetching today horoscope for:', zodiacSign);
       return fetchDailyHoroscope(zodiacSign!, 'today');
     },
     enabled: !!zodiacSign,
@@ -37,7 +34,6 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
   const { data: tomorrowData, isLoading: tomorrowLoading, error: tomorrowError } = useQuery({
     queryKey: ['horoscope', 'daily', zodiacSign, 'tomorrow'],
     queryFn: () => {
-      console.log('📅 Fetching tomorrow horoscope for:', zodiacSign);
       return fetchDailyHoroscope(zodiacSign!, 'tomorrow');
     },
     enabled: !!zodiacSign,
@@ -49,9 +45,6 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
   const isLoading = todayLoading || tomorrowLoading;
   const isError = !!todayError || !!tomorrowError;
   const error = (todayError || tomorrowError) as Error | null;
-
-  if (isLoading) console.log('⏳ Loading horoscope data...');
-  if (isError) console.error('❌ Error loading horoscope:', error?.message || error);
 
   const horoscopes = todayData && tomorrowData ? {
     today: {
@@ -71,8 +64,6 @@ export const useHoroscope = (zodiacSign: ZodiacSign | null): UseHoroscopeResult 
       color: typeof tomorrowData === 'object' ? (tomorrowData as any).luckyColor : null,
     },
   } : null;
-
-  if (horoscopes) console.log('✅ Horoscopes ready!', horoscopes);
 
   return { horoscopes, isLoading, isError, error };
 };
