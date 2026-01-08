@@ -30,7 +30,6 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
   const [currentIndex, setCurrentIndex] = useState(1); // Start with Today (profile is 0)
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const tabs = ['profile', 'yesterday', 'today', 'tomorrow', 'weekly', 'monthly'] as const;
@@ -56,21 +55,13 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
     if (touchStart - touchEnd > 50) {
       // Swiped left - next card
       if (currentIndex < tabs.length - 1) {
-        setSwipeDirection('left');
-        setTimeout(() => {
-          setCurrentIndex(currentIndex + 1);
-          setSwipeDirection(null);
-        }, 250);
+        setCurrentIndex(currentIndex + 1);
       }
     }
     if (touchEnd - touchStart > 50) {
       // Swiped right - previous card
       if (currentIndex > 0) {
-        setSwipeDirection('right');
-        setTimeout(() => {
-          setCurrentIndex(currentIndex - 1);
-          setSwipeDirection(null);
-        }, 250);
+        setCurrentIndex(currentIndex - 1);
       }
     }
   };
@@ -112,40 +103,27 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
       {/* Card Stack */}
       <div
         ref={containerRef}
-        className="relative w-full min-h-[500px]"
-        style={{ perspective: '1000px' }}
+        className="relative w-full min-h-[500px] perspective"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Background cards for depth effect - visible stack */}
-        {[3, 2, 1].map((offset) => (
+        {/* Background cards for depth effect */}
+        {[2, 1].map((offset) => (
           <div
             key={offset}
-            className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20"
+            className="absolute inset-0 bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 transform"
             style={{
-              transform: `translateY(${offset * 12}px) scale(${1 - offset * 0.025}) translateZ(${-offset * 50}px)`,
+              transform: `translateY(${offset * 8}px) scale(${1 - offset * 0.02})`,
               zIndex: -offset,
-              opacity: 0.6,
-              transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              opacity: 0.5,
             }}
           />
         ))}
 
-        {/* Main card with smooth swipe animation */}
-        <div 
-          className="absolute inset-0 w-full h-full rounded-3xl"
-          style={{
-            transform: swipeDirection === 'left' 
-              ? 'translateX(120%) rotateY(-20deg) rotateZ(5deg)' 
-              : swipeDirection === 'right' 
-              ? 'translateX(-120%) rotateY(20deg) rotateZ(-5deg)' 
-              : 'translateX(0) rotateY(0) rotateZ(0)',
-            opacity: swipeDirection ? 0.3 : 1,
-            transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}
-        >
+        {/* Main card with animation */}
+        <div className="absolute inset-0 transition-all duration-300 ease-out w-full h-full">
           {currentTab === 'profile' ? (
-            <div className="bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-lg rounded-3xl p-6 shadow-2xl border border-white/20 w-full h-full flex flex-col overflow-hidden">
+            <div className="bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-lg rounded-3xl p-6 shadow-2xl border border-white/20 w-full h-full flex flex-col">
               <div className="text-center space-y-3">
                 <div className="text-5xl font-bold text-white">{userData.zodiacSign}</div>
                 <p className="text-purple-200 text-base">{ZODIAC_SIGN_DETAILS[userData.zodiacSign].element} Sign</p>
