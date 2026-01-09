@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { Haptics } from "@capacitor/haptics";
 import { differenceInYears } from "date-fns";
 
-// 1. Define Schema - Only collecting birth date, weight, and height
+// 1. Define Schema - Only collecting birth date, weight, height, and language preference
 const formSchema = z.object({
   weight: z.coerce.number().min(1, "Weight must be positive").max(500, "Weight seems too high"),
   height: z.coerce.number().min(50, "Height must be at least 50 cm").max(300, "Height seems too high"),
@@ -23,6 +23,7 @@ const formSchema = z.object({
     required_error: "A birth date is required.",
   }).max(new Date(), "Birth date cannot be in the future."),
   birthTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM, e.g., 14:30)"),
+  preferredLanguage: z.string().default('en'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -41,6 +42,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
       weight: 70,
       height: 175,
       birthTime: "12:00",
+      preferredLanguage: "en",
     },
   });
 
@@ -60,6 +62,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
       height: data.height,
       birthDate: data.birthDate,
       birthTime: data.birthTime,
+      preferredLanguage: data.preferredLanguage,
     };
     
     onSubmitData(userDataWithZodiac);
@@ -273,6 +276,36 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmitData }) => {
                     className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                     {...field} 
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Preferred Language */}
+          <FormField
+            control={form.control}
+            name="preferredLanguage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white text-sm font-semibold">🌍 Preferred Language</FormLabel>
+                <FormControl>
+                  <select 
+                    {...field}
+                    className="w-full bg-white/20 border border-white/30 text-white rounded-lg px-3 py-2 placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  >
+                    <option value="en" className="bg-purple-900 text-white">English</option>
+                    <option value="es" className="bg-purple-900 text-white">🇪🇸 Spanish</option>
+                    <option value="fr" className="bg-purple-900 text-white">🇫🇷 French</option>
+                    <option value="de" className="bg-purple-900 text-white">🇩🇪 German</option>
+                    <option value="it" className="bg-purple-900 text-white">🇮🇹 Italian</option>
+                    <option value="pt" className="bg-purple-900 text-white">🇵🇹 Portuguese</option>
+                    <option value="ja" className="bg-purple-900 text-white">🇯🇵 Japanese</option>
+                    <option value="zh-CN" className="bg-purple-900 text-white">🇨🇳 Chinese</option>
+                    <option value="ko" className="bg-purple-900 text-white">🇰🇷 Korean</option>
+                    <option value="hi" className="bg-purple-900 text-white">🇮🇳 Hindi</option>
+                    <option value="mr" className="bg-purple-900 text-white">🇮🇳 Marathi</option>
+                  </select>
                 </FormControl>
                 <FormMessage />
               </FormItem>

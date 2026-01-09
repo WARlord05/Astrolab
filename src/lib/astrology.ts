@@ -21,6 +21,7 @@ export interface UserData {
   birthDate: Date;
   birthTime: string; // HH:MM format
   zodiacSign: ZodiacSign;
+  preferredLanguage?: string; // Language code for translation (e.g., 'es', 'fr', 'mr')
 }
 
 /**

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Horoscope, UserData, ZODIAC_SIGN_DETAILS } from '@/lib/astrology';
 import { Separator } from '@/components/ui/separator';
-import { Star, Calendar, Zap, Palette, User, Clock, Heart, TrendingUp, X, Droplet, Sparkles, Globe } from 'lucide-react';
+import { Star, Calendar, Zap, Palette, User, Clock, Heart, TrendingUp, X, Droplet, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -43,61 +43,22 @@ const UserDetailsCard: React.FC<{ userData: UserData }> = ({ userData }) => {
 
 const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscopes, onReset }) => {
     const [activeTab, setActiveTab] = useState<'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly'>('today');
-    const [targetLanguage, setTargetLanguage] = useState<string | null>(null);
-    const [translatedHoroscopes, setTranslatedHoroscopes] = useState<{ today: Horoscope; tomorrow: Horoscope } | null>(null);
-    const [translatedExtended, setTranslatedExtended] = useState<{ yesterday?: Horoscope; weekly?: Horoscope; monthly?: Horoscope }>({});
-    const [isTranslating, setIsTranslating] = useState(false);
     const [yesterdayData, setYesterdayData] = useState<Horoscope | null>(null);
     const [weeklyData, setWeeklyData] = useState<Horoscope | null>(null);
     const [monthlyData, setMonthlyData] = useState<Horoscope | null>(null);
     const [isLoadingExtended, setIsLoadingExtended] = useState(false);
     const [isNativeApp, setIsNativeApp] = useState(false);
+    const [preTranslatedToday, setPreTranslatedToday] = useState<Horoscope | null>(null);
+    const [preTranslatedTomorrow, setPreTranslatedTomorrow] = useState<Horoscope | null>(null);
+    const [preTranslatedYesterday, setPreTranslatedYesterday] = useState<Horoscope | null>(null);
+    const [preTranslatedWeekly, setPreTranslatedWeekly] = useState<Horoscope | null>(null);
+    const [preTranslatedMonthly, setPreTranslatedMonthly] = useState<Horoscope | null>(null);
 
-    const languages = [
-        { code: 'es', name: '🇪🇸 Spanish' },
-        { code: 'fr', name: '🇫🇷 French' },
-        { code: 'de', name: '🇩🇪 German' },
-        { code: 'it', name: '🇮🇹 Italian' },
-        { code: 'pt', name: '🇵🇹 Portuguese' },
-        { code: 'ja', name: '🇯🇵 Japanese' },
-        { code: 'zh', name: '🇨🇳 Chinese' },
-        { code: 'ko', name: '🇰🇷 Korean' },
-        { code: 'hi', name: '🇮🇳 Hindi' },
-        { code: 'mr', name: '🇮🇳 Marathi' },
-    ];
-
-    const translateText = async (text: string, targetLang: string) => {
-        try {
-            // Split text into chunks to avoid hitting URL length limits
-            const maxChunkLength = 500;
-            if (text.length > maxChunkLength) {
-                // Split by sentences
-                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-                let translated = '';
-                
-                for (const sentence of sentences) {
-                    const trimmed = sentence.trim();
-                    if (!trimmed) continue;
-                    
-                    const result = await translateSingleChunk(trimmed, targetLang);
-                    translated += result + ' ';
-                    
-                    // Add delay between requests
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                }
-                
-                return translated.trim();
-            } else {
-                return await translateSingleChunk(text, targetLang);
-            }
-        } catch (error) {
-            console.error('Translation error:', error);
-            return text;
-        }
-    };
-
+    // Translate a single chunk of text
     const translateSingleChunk = async (text: string, targetLang: string): Promise<string> => {
         try {
+            if (!text || targetLang === 'en') return text;
+
             const response = await fetch('https://translate-api-sigma.vercel.app/translate', {
                 method: 'POST',
                 headers: {
@@ -110,70 +71,50 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
             });
 
             if (!response.ok) {
-                console.error(`Translation API error: ${response.status} ${response.statusText}`);
+                console.error(`Translation API error: ${response.status}`);
                 return text;
             }
 
             const result = await response.json();
-            
-            if (result.success && result.text) {
-                console.log(`Translated to ${targetLang}: ${result.text.substring(0, 50)}...`);
-                return result.text;
-            } else if (result.text) {
-                // Even if success is false, return the text if available
-                return result.text;
-            }
-            
-            console.error('Translation failed:', result.error || 'Unknown error');
-            return text;
+            return result.text || text;
         } catch (error) {
-            console.error('Translation chunk error:', error);
+            console.error('Translation error:', error);
             return text;
         }
     };
 
-    const handleTranslate = async (langCode: string) => {
-        setIsTranslating(true);
-        setTargetLanguage(langCode);
-        console.log(`Starting translation to ${langCode}...`);
-
+    // Translate full horoscope text (with sentence splitting for long texts)
+    const translateHoroscope = async (text: string, targetLang: string): Promise<string> => {
         try {
-            if (activeTab === 'today' || activeTab === 'tomorrow') {
-                const translatedToday = { ...horoscopes.today };
-                const translatedTomorrow = { ...horoscopes.tomorrow };
+            if (!text || targetLang === 'en') return text;
 
-                console.log('Translating today prediction...');
-                translatedToday.prediction = await translateText(horoscopes.today.prediction, langCode);
-                await new Promise(resolve => setTimeout(resolve, 300)); // Delay between requests
-                console.log('Translating tomorrow prediction...');
-                translatedTomorrow.prediction = await translateText(horoscopes.tomorrow.prediction, langCode);
-
-                console.log('Setting translated horoscopes:', { today: translatedToday, tomorrow: translatedTomorrow });
-                setTranslatedHoroscopes({
-                    today: translatedToday,
-                    tomorrow: translatedTomorrow,
-                });
-            } else if (activeTab === 'yesterday' && yesterdayData) {
-                const translated = { ...yesterdayData };
-                translated.prediction = await translateText(yesterdayData.prediction, langCode);
-                setTranslatedExtended({ yesterday: translated });
-            } else if (activeTab === 'weekly' && weeklyData) {
-                const translated = { ...weeklyData };
-                translated.prediction = await translateText(weeklyData.prediction, langCode);
-                setTranslatedExtended({ weekly: translated });
-            } else if (activeTab === 'monthly' && monthlyData) {
-                const translated = { ...monthlyData };
-                translated.prediction = await translateText(monthlyData.prediction, langCode);
-                setTranslatedExtended({ monthly: translated });
+            const maxChunkLength = 500;
+            if (text.length > maxChunkLength) {
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+                let translated = '';
+                
+                for (const sentence of sentences) {
+                    const trimmed = sentence.trim();
+                    if (!trimmed) continue;
+                    
+                    const result = await translateSingleChunk(trimmed, targetLang);
+                    translated += result + ' ';
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Shorter delay
+                }
+                
+                return translated.trim();
+            } else {
+                return await translateSingleChunk(text, targetLang);
             }
         } catch (error) {
-            console.error('Error translating horoscopes:', error);
-        } finally {
-            setIsTranslating(false);
+            console.error('Translation error:', error);
+            return text;
         }
     };
 
-    const displayHoroscopes = translatedHoroscopes || horoscopes;
+    const handleTabChange = (tab: 'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly') => {
+        setActiveTab(tab);
+    };
     
     // Detect if running in native app
     useEffect(() => {
@@ -193,6 +134,8 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
         const loadExtendedForecasts = async () => {
             setIsLoadingExtended(true);
             try {
+                const targetLang = userData.preferredLanguage || 'en';
+                
                 // Load all three in parallel
                 const [yesterdayResult, weeklyResult, monthlyResult] = await Promise.allSettled([
                     fetchDailyHoroscope(userData.zodiacSign, 'yesterday'),
@@ -203,40 +146,61 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                 // Process yesterday
                 if (yesterdayResult.status === 'fulfilled') {
                     const data = yesterdayResult.value;
-                    setYesterdayData({
+                    const yesterday = {
                         prediction: typeof data === 'string' ? data : data.prediction,
                         luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
                         luckyColor: typeof data === 'string' ? '' : data.luckyColor,
                         date: 'Yesterday',
                         luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
                         sign: userData.zodiacSign,
-                    });
+                    };
+                    setYesterdayData(yesterday);
+                    
+                    // Pre-translate if needed
+                    if (targetLang !== 'en') {
+                        const translatedPrediction = await translateHoroscope(yesterday.prediction, targetLang);
+                        setPreTranslatedYesterday({ ...yesterday, prediction: translatedPrediction });
+                    }
                 }
 
                 // Process weekly
                 if (weeklyResult.status === 'fulfilled') {
                     const data = weeklyResult.value;
-                    setWeeklyData({
+                    const weekly = {
                         prediction: typeof data === 'string' ? data : data.prediction,
                         luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
                         luckyColor: typeof data === 'string' ? '' : data.luckyColor,
                         date: 'This Week',
                         luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
                         sign: userData.zodiacSign,
-                    });
+                    };
+                    setWeeklyData(weekly);
+                    
+                    // Pre-translate if needed
+                    if (targetLang !== 'en') {
+                        const translatedPrediction = await translateHoroscope(weekly.prediction, targetLang);
+                        setPreTranslatedWeekly({ ...weekly, prediction: translatedPrediction });
+                    }
                 }
 
                 // Process monthly
                 if (monthlyResult.status === 'fulfilled') {
                     const data = monthlyResult.value;
-                    setMonthlyData({
+                    const monthly = {
                         prediction: typeof data === 'string' ? data : data.prediction,
                         luckyNumber: typeof data === 'string' ? 0 : data.luckyNumber,
                         luckyColor: typeof data === 'string' ? '' : data.luckyColor,
                         date: 'This Month',
                         luckyNumberMeaning: typeof data === 'string' ? '' : data.luckyNumberMeaning,
                         sign: userData.zodiacSign,
-                    });
+                    };
+                    setMonthlyData(monthly);
+                    
+                    // Pre-translate if needed
+                    if (targetLang !== 'en') {
+                        const translatedPrediction = await translateHoroscope(monthly.prediction, targetLang);
+                        setPreTranslatedMonthly({ ...monthly, prediction: translatedPrediction });
+                    }
                 }
             } catch (error) {
                 console.error('Error loading extended forecasts:', error);
@@ -249,13 +213,28 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
             loadExtendedForecasts();
         }
     }, [userData]);
+
+    // Pre-translate today and tomorrow horoscopes when preferredLanguage changes
+    useEffect(() => {
+        const preTranslateTodayTomorrow = async () => {
+            const targetLang = userData.preferredLanguage || 'en';
+            
+            if (targetLang !== 'en') {
+                const translatedTodayPrediction = await translateHoroscope(horoscopes.today.prediction, targetLang);
+                setPreTranslatedToday({ ...horoscopes.today, prediction: translatedTodayPrediction });
+                
+                const translatedTomorrowPrediction = await translateHoroscope(horoscopes.tomorrow.prediction, targetLang);
+                setPreTranslatedTomorrow({ ...horoscopes.tomorrow, prediction: translatedTomorrowPrediction });
+            }
+        };
+
+        preTranslateTodayTomorrow();
+    }, [userData.preferredLanguage, horoscopes]);
     
-    const handleTabChange = async (tab: 'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly') => {
+    const handleTabChange = (tab: 'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly') => {
         setActiveTab(tab);
-        setTargetLanguage(null);
-        setTranslatedHoroscopes(null);
-        setTranslatedExtended({});
     };
+    
     return (
         <div className="w-full space-y-6">
             <div className="text-center space-y-3 mb-8">
@@ -331,61 +310,29 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                 </button>
             </div>
 
-            <div className="flex gap-2 flex-wrap justify-center">
-                {/* Translation Buttons */}
-                <div className="w-full bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                            <Globe className="w-5 h-5 text-pink-300" />
-                            <span className="text-white font-semibold">Translate</span>
-                        </div>
-                        {isTranslating && (
-                            <span className="text-yellow-300 text-sm">Translating...</span>
-                        )}
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                        {languages.map((lang) => (
-                            <button
-                                key={lang.code}
-                                onClick={() => handleTranslate(lang.code)}
-                                disabled={isTranslating}
-                                className={cn(
-                                    "px-4 py-2 rounded-lg text-xs font-medium transition-all border border-white/20",
-                                    targetLanguage === lang.code
-                                        ? "bg-pink-500/50 text-white border-pink-400"
-                                        : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
-                                )}
-                            >
-                                {lang.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
             {/* Mobile Layout - Tinder Style Cards */}
             <div className="md:hidden">
                 <SwipeableCards
                     forecasts={{
-                        yesterday: yesterdayData,
-                        today: displayHoroscopes.today,
-                        tomorrow: displayHoroscopes.tomorrow,
-                        weekly: weeklyData,
-                        monthly: monthlyData,
+                        yesterday: preTranslatedYesterday || yesterdayData,
+                        today: preTranslatedToday || horoscopes.today,
+                        tomorrow: preTranslatedTomorrow || horoscopes.tomorrow,
+                        weekly: preTranslatedWeekly || weeklyData,
+                        monthly: preTranslatedMonthly || monthlyData,
                     }}
                     isLoadingExtended={isLoadingExtended}
-                    translatedHoroscopes={translatedExtended}
+                    translatedHoroscopes={{}}
                     onLoadTab={handleTabChange}
                 />
             </div>
 
             {/* Desktop Layout - Tab Based */}
             <div className="hidden md:block space-y-6">
-                {activeTab === 'today' && <HoroscopeCard horoscope={displayHoroscopes.today} showDetails={true} />}
-                {activeTab === 'tomorrow' && <HoroscopeCard horoscope={displayHoroscopes.tomorrow} showDetails={true} />}
-                {activeTab === 'yesterday' && yesterdayData && <HoroscopeCard horoscope={translatedExtended.yesterday || yesterdayData} showDetails={false} />}
-                {activeTab === 'weekly' && weeklyData && <HoroscopeCard horoscope={translatedExtended.weekly || weeklyData} showDetails={false} />}
-                {activeTab === 'monthly' && monthlyData && <HoroscopeCard horoscope={translatedExtended.monthly || monthlyData} showDetails={false} />}
+                {activeTab === 'today' && <HoroscopeCard horoscope={preTranslatedToday || horoscopes.today} showDetails={true} />}
+                {activeTab === 'tomorrow' && <HoroscopeCard horoscope={preTranslatedTomorrow || horoscopes.tomorrow} showDetails={true} />}
+                {activeTab === 'yesterday' && yesterdayData && <HoroscopeCard horoscope={preTranslatedYesterday || yesterdayData} showDetails={false} />}
+                {activeTab === 'weekly' && weeklyData && <HoroscopeCard horoscope={preTranslatedWeekly || weeklyData} showDetails={false} />}
+                {activeTab === 'monthly' && monthlyData && <HoroscopeCard horoscope={preTranslatedMonthly || monthlyData} showDetails={false} />}
             </div>
 
             <div className="text-center pt-6">
