@@ -109,11 +109,22 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                 })
             });
 
+            if (!response.ok) {
+                console.error(`Translation API error: ${response.status} ${response.statusText}`);
+                return text;
+            }
+
             const result = await response.json();
             
             if (result.success && result.text) {
+                console.log(`Translated to ${targetLang}: ${result.text.substring(0, 50)}...`);
+                return result.text;
+            } else if (result.text) {
+                // Even if success is false, return the text if available
                 return result.text;
             }
+            
+            console.error('Translation failed:', result.error || 'Unknown error');
             return text;
         } catch (error) {
             console.error('Translation chunk error:', error);
@@ -124,16 +135,20 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
     const handleTranslate = async (langCode: string) => {
         setIsTranslating(true);
         setTargetLanguage(langCode);
+        console.log(`Starting translation to ${langCode}...`);
 
         try {
             if (activeTab === 'today' || activeTab === 'tomorrow') {
                 const translatedToday = { ...horoscopes.today };
                 const translatedTomorrow = { ...horoscopes.tomorrow };
 
+                console.log('Translating today prediction...');
                 translatedToday.prediction = await translateText(horoscopes.today.prediction, langCode);
                 await new Promise(resolve => setTimeout(resolve, 300)); // Delay between requests
+                console.log('Translating tomorrow prediction...');
                 translatedTomorrow.prediction = await translateText(horoscopes.tomorrow.prediction, langCode);
 
+                console.log('Setting translated horoscopes:', { today: translatedToday, tomorrow: translatedTomorrow });
                 setTranslatedHoroscopes({
                     today: translatedToday,
                     tomorrow: translatedTomorrow,
