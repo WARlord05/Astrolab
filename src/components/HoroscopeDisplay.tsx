@@ -439,6 +439,7 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
                     }}
                     isLoadingExtended={isLoadingExtended}
                     translatedHoroscopes={{}}
+                    translatedMeanings={translatedMeanings}
                     onLoadTab={handleTabChange}
                 />
             </div>

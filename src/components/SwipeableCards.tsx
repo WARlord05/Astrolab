@@ -13,6 +13,7 @@ interface SwipeableCardsProps {
   };
   isLoadingExtended: boolean;
   translatedHoroscopes: Record<string, Horoscope> | null;
+  translatedMeanings?: Record<string, string>;
   onLoadTab: (tab: 'yesterday' | 'today' | 'tomorrow' | 'weekly' | 'monthly') => void;
 }
 
@@ -20,6 +21,7 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
   forecasts,
   isLoadingExtended,
   translatedHoroscopes,
+  translatedMeanings,
   onLoadTab,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(1); // Start with Today
@@ -186,6 +188,7 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
           <HoroscopeCard
             horoscope={translatedHoroscopes?.[currentTab] || currentForecast}
             showDetails={currentTab === 'today' || currentTab === 'tomorrow'}
+            translatedMeaning={translatedMeanings?.[currentTab]}
           />
         </div>
       </div>
