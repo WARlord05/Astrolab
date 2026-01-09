@@ -8,9 +8,10 @@ import { format } from 'date-fns';
 interface HoroscopeCardProps {
     horoscope: Horoscope;
     showDetails?: boolean;
+    translatedMeaning?: string;
 }
 
-export const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ horoscope, showDetails = true }) => {
+export const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ horoscope, showDetails = true, translatedMeaning }) => {
     const [showMeaning, setShowMeaning] = useState(false);
     const todayFormatted = format(new Date(), 'PPP');
     const isToday = horoscope.date === todayFormatted;
@@ -86,7 +87,7 @@ export const HoroscopeCard: React.FC<HoroscopeCardProps> = ({ horoscope, showDet
                             </button>
                         </div>
                         <p className="text-purple-100 leading-relaxed mb-6 text-base">
-                            {horoscope.luckyNumberMeaning || "No meaning available"}
+                            {translatedMeaning || horoscope.luckyNumberMeaning || "No meaning available"}
                         </p>
                         <Button 
                             onClick={() => setShowMeaning(false)} 
