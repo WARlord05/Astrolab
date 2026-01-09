@@ -98,24 +98,21 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
 
     const translateSingleChunk = async (text: string, targetLang: string): Promise<string> => {
         try {
-            const response = await fetch('http://localhost:5000/translate', {
+            const response = await fetch('https://translate-api-sigma.vercel.app/translate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    q: text,
-                    source: 'auto',
-                    target: targetLang,
-                    format: 'text',
-                    api_key: ''
+                    text: text,
+                    to: targetLang
                 })
             });
 
             const result = await response.json();
             
-            if (result.translatedText) {
-                return result.translatedText;
+            if (result.success && result.text) {
+                return result.text;
             }
             return text;
         } catch (error) {
@@ -320,13 +317,35 @@ const HoroscopeDisplay: React.FC<HoroscopeDisplayProps> = ({ userData, horoscope
             </div>
 
             <div className="flex gap-2 flex-wrap justify-center">
-                {!isNativeApp && (
-                    <div className="w-full text-center bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-4">
-                        <p className="text-yellow-200 text-sm">
-                            ⚠️ Translation feature coming soon. Please use chome's built-in translation for now. ⚠️
-                        </p>
+                {/* Translation Buttons */}
+                <div className="w-full bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Globe className="w-5 h-5 text-pink-300" />
+                            <span className="text-white font-semibold">Translate</span>
+                        </div>
+                        {isTranslating && (
+                            <span className="text-yellow-300 text-sm">Translating...</span>
+                        )}
                     </div>
-                )}
+                    <div className="flex gap-2 flex-wrap">
+                        {languages.map((lang) => (
+                            <button
+                                key={lang.code}
+                                onClick={() => handleTranslate(lang.code)}
+                                disabled={isTranslating}
+                                className={cn(
+                                    "px-4 py-2 rounded-lg text-xs font-medium transition-all border border-white/20",
+                                    targetLanguage === lang.code
+                                        ? "bg-pink-500/50 text-white border-pink-400"
+                                        : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
+                                )}
+                            >
+                                {lang.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {/* Mobile Layout - Tinder Style Cards */}
